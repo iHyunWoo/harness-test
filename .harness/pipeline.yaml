@@ -10,7 +10,7 @@ pipeline:
       codebase:
         # Harness Code Repository 를 쓰면 connectorRef 가 필요 없다.
         # 외부 GitHub 을 쓰면 connectorRef: <커넥터 ID> 를 추가한다.
-        repoName: harness-test
+        repoName: my-first-repository
         build: <+input>
 
   stages:
