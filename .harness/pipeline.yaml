@@ -23,9 +23,11 @@ pipeline:
           cloneCodebase: true
           platform:
             os: Linux
-            arch: Amd64
+            # Apple Silicon 에서 도는 Docker 델리게이트라 Arm64.
+            arch: Arm64
           runtime:
-            type: Cloud
+            # Harness Cloud 는 신용카드 등록이 필요해 로컬 Docker 델리게이트를 쓴다.
+            type: Docker
             spec: {}
 
           # 워크스페이스(/harness) 밖 경로는 스텝 간에 유지되지 않는다.
