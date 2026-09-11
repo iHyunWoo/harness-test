@@ -11,6 +11,8 @@ set -a; . "$ENV_FILE"; set +a
 NAME="${HARNESS_DELEGATE_NAME:-docker-delegate}"
 MEM="${HARNESS_DELEGATE_DOCKER_MEMORY:-2g}"
 CPUS="${HARNESS_DELEGATE_DOCKER_CPUS:-1}"
+# CI 가 플랫폼 셀렉터로 델리게이트를 고른다. 없으면 "no eligible delegates" 가 난다.
+TAGS="${HARNESS_DELEGATE_TAGS:-linux-arm64}"
 
 docker rm -f "$NAME" >/dev/null 2>&1 || true
 
@@ -21,6 +23,7 @@ docker run -d --name "$NAME" --restart unless-stopped \
   -e DELEGATE_TYPE=DOCKER \
   -e ACCOUNT_ID="$HARNESS_ACCOUNT_ID" \
   -e DELEGATE_TOKEN="$HARNESS_DELEGATE_TOKEN" \
+  -e DELEGATE_TAGS="$TAGS" \
   -e MANAGER_HOST_AND_PORT="${HARNESS_MANAGER_ENDPOINT:-https://app.harness.io}" \
   "$HARNESS_DELEGATE_IMAGE"
 
