@@ -127,3 +127,41 @@ pipeline:
                     context: .
                     caching: true
                     buildOnly: true
+trigger:
+  name: on push to main
+  identifier: on_push_main
+  enabled: true
+  description: main 브랜치 push 시 CI 파이프라인 실행
+  tags: {}
+  orgIdentifier: default
+  projectIdentifier: default_project
+  pipelineIdentifier: harness_test_ci
+  stagesToExecute: []
+  source:
+    type: Webhook
+    spec:
+      # Harness Code 레포라 type 은 Harness, connectorRef 는 필요 없다.
+      # 외부 GitHub 이면 type: Github 과 connectorRef 를 넣는다.
+      type: Harness
+      spec:
+        type: Push
+        spec:
+          autoAbortPreviousExecutions: false
+          repoName: collabops-web-harness
+          actions: []
+          payloadConditions:
+            - key: targetBranch
+              operator: Equals
+              value: main
+          headerConditions: []
+  # 파이프라인의 codebase build 가 <+input> 이므로 트리거가 채워준다.
+  inputYaml: |
+    pipeline:
+      identifier: harness_test_ci
+      properties:
+        ci:
+          codebase:
+            build:
+              type: branch
+              spec:
+                branch: <+trigger.branch>
