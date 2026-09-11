@@ -116,16 +116,21 @@ pipeline:
                       curl -sf http://127.0.0.1:8000/health | grep '"status":"ok"'
 
               # 이미지 빌드만 하고 푸시하지 않는다. 레지스트리 커넥터가 필요 없다.
+              # BuildAndPushDockerRegistry 는 레지스트리 커넥터를 요구한다.
+              # 로컬 러너는 호스트 Docker 를 그대로 쓸 수 있으므로 Run 으로 빌드만 한다.
               - step:
-                  type: BuildAndPushDockerRegistry
+                  type: Run
                   name: Build image
                   identifier: build_image
                   spec:
-                    connectorRef: <+input>
-                    repo: harness-test
-                    tags:
-                      - <+pipeline.sequenceId>
-                    dockerfile: Dockerfile
-                    context: .
-                    caching: true
-                    buildOnly: true
+                    shell: Sh
+                    command: |-
+                      if ! command -v docker >/dev/null 2>&1; then
+                        for d in /usr/local/bin /opt/homebrew/bin; do
+                          [ -x "$d/docker" ] && PATH="$d:$PATH" && export PATH && break
+                        done
+                      fi
+                      command -v docker >/dev/null 2>&1 || {
+                        echo "docker 를 찾을 수 없습니다."; exit 1; }
+                      docker build -t harness-test:<+pipeline.sequenceId> .
+                      docker image ls harness-test --format '{{.Repository}}:{{.Tag}} {{.Size}}'
