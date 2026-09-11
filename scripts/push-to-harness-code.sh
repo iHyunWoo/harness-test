@@ -16,8 +16,15 @@ set -a; . "$ENV_FILE"; set +a
 
 BRANCH="${1:-main}"
 
-# 토큰이 remote 설정이나 로그에 남지 않도록 매번 조립해서 쓴다.
-AUTH_URL="${HARNESS_CODE_URL/https:\/\//https://${HARNESS_CODE_USER}:${HARNESS_CODE_TOKEN}@}"
+# 사용자명이 이메일이면 @ 가 URL 을 깨뜨리므로 percent-encoding 한다.
+urlencode() {
+  python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$1"
+}
+ENC_USER=$(urlencode "$HARNESS_CODE_USER")
+ENC_TOKEN=$(urlencode "$HARNESS_CODE_TOKEN")
 
-git push "$AUTH_URL" "$BRANCH" "$@" 2>&1 | sed "s|${HARNESS_CODE_TOKEN}|***|g"
+# 토큰이 remote 설정이나 로그에 남지 않도록 매번 조립해서 쓴다.
+AUTH_URL="${HARNESS_CODE_URL/https:\/\//https://${ENC_USER}:${ENC_TOKEN}@}"
+
+git push "$AUTH_URL" "$BRANCH" 2>&1 | sed -e "s|${ENC_TOKEN}|***|g" -e "s|${HARNESS_CODE_TOKEN}|***|g"
 echo "푸시 완료: $BRANCH -> ${HARNESS_CODE_URL}"
