@@ -1,0 +1,111 @@
+pipeline:
+  name: harness-test CI
+  identifier: harness_test_ci
+  projectIdentifier: default_project
+  orgIdentifier: default
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        repoName: collabops-web-harness
+        build: <+input>
+  stages:
+    - stage:
+        name: build
+        identifier: build
+        type: CI
+        spec:
+          cloneCodebase: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          sharedPaths:
+            - /root/.cache/pip
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Install dependencies
+                  identifier: install
+                  spec:
+                    shell: Sh
+                    command: |-
+                      python -m pip install --upgrade pip
+                      pip install -r requirements-dev.txt
+              - step:
+                  type: Run
+                  name: Lint
+                  identifier: lint
+                  spec:
+                    shell: Sh
+                    command: ruff check .
+              - step:
+                  type: Run
+                  name: Test
+                  identifier: test
+                  spec:
+                    shell: Sh
+                    command: |-
+                      pytest tests --ignore=tests/flaky -q \
+                        --junitxml=report.xml \
+                        --cov=app --cov-report=xml
+                    reports:
+                      type: JUnit
+                      spec:
+                        paths:
+                          - report.xml
+              - step:
+                  type: Run
+                  name: Flaky tests
+                  identifier: flaky_tests
+                  spec:
+                    shell: Sh
+                    command: pytest tests/flaky -q --junitxml=report-flaky.xml || true
+                    reports:
+                      type: JUnit
+                      spec:
+                        paths:
+                          - report-flaky.xml
+                  failureStrategies:
+                    - onFailure:
+                        errors:
+                          - AllErrors
+                        action:
+                          type: Ignore
+              - step:
+                  type: Background
+                  name: Run API
+                  identifier: run_api
+                  spec:
+                    shell: Sh
+                    command: uvicorn app.main:app --host 127.0.0.1 --port 8000
+                    portBindings:
+                      "8000": "8000"
+              - step:
+                  type: Run
+                  name: Smoke test
+                  identifier: smoke_test
+                  spec:
+                    shell: Sh
+                    command: |-
+                      for i in $(seq 1 30); do
+                        curl -sf http://127.0.0.1:8000/health && break
+                        sleep 1
+                      done
+                      curl -sf http://127.0.0.1:8000/health | grep '"status":"ok"'
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: Build image
+                  identifier: build_image
+                  spec:
+                    connectorRef: <+input>
+                    repo: harness-test
+                    tags:
+                      - <+pipeline.sequenceId>
+                    dockerfile: Dockerfile
+                    context: .
+                    caching: true
+                    buildOnly: true
