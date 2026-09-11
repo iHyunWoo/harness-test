@@ -49,7 +49,16 @@ docker build -t harness-test:local .
 
 ## 파이프라인
 
-`.harness/pipeline.yaml` 의 CI stage 하나에 스텝 7개.
+CI stage 하나에 스텝 7개.
+
+Harness Git Experience 가 파이프라인을 자기 경로에 저장한다:
+
+```
+.harness/orgs/default/projects/default_project/pipelines/pipeline.yaml
+.harness/orgs/default/projects/default_project/triggers/on_push_main.yaml
+```
+
+이 파일을 고쳐서 푸시하면 Harness 에 반영된다.
 
 | 스텝 | 타입 | 역할 |
 | --- | --- | --- |
@@ -69,14 +78,16 @@ docker build -t harness-test:local .
 - **Background 스텝** — 앱을 띄워두고 다음 스텝에서 호출
 - **runtime.type: Cloud** — Harness Cloud 빌드 인프라
 
-### 적용 전 채울 값
+### 레포 정본
 
+Harness Code (`collabops-web-harness`) 가 정본이고 GitHub 은 백업이다.
+
+```bash
+git push origin main                    # GitHub
+./scripts/push-to-harness-code.sh main  # Harness Code
 ```
-YOUR_HARNESS_PROJECT_ID
-YOUR_GITHUB_CONNECTOR_ID
-YOUR_DOCKER_CONNECTOR_ID
-YOUR_DOCKER_REPO
-```
+
+자격증명은 `.harness-code.env` (gitignore) 에서 읽는다.
 
 ## flaky 스위트
 
