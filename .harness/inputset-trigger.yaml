@@ -1,0 +1,14 @@
+inputSet:
+  name: trigger branch
+  identifier: trigger_branch
+  orgIdentifier: default
+  projectIdentifier: default_project
+  pipeline:
+    identifier: harness_test_ci
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: <+trigger.branch>
