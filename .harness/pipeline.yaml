@@ -30,10 +30,6 @@ pipeline:
             type: Docker
             spec: {}
 
-          # 워크스페이스(/harness) 밖 경로는 스텝 간에 유지되지 않는다.
-          sharedPaths:
-            - /root/.cache/pip
-
           execution:
             steps:
               - step:
