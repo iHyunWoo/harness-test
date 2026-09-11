@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "harness-test"
+version = "0.1.0"
+description = "Sample FastAPI app for Harness CI/CD testing"
+requires-python = ">=3.11"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# file/line 속성이 있어야 리포트에서 테스트 위치를 알 수 있다.
+junit_family = "xunit1"
+
+[tool.ruff]
+line-length = 100
