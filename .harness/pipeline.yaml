@@ -1,14 +1,15 @@
 pipeline:
   name: harness-test CI
   identifier: harness_test_ci
-  projectIdentifier: YOUR_HARNESS_PROJECT_ID
+  projectIdentifier: default_project
   orgIdentifier: default
   tags: {}
 
   properties:
     ci:
       codebase:
-        connectorRef: YOUR_GITHUB_CONNECTOR_ID
+        # Harness Code Repository 를 쓰면 connectorRef 가 필요 없다.
+        # 외부 GitHub 을 쓰면 connectorRef: <커넥터 ID> 를 추가한다.
         repoName: harness-test
         build: <+input>
 
@@ -26,8 +27,7 @@ pipeline:
             type: Cloud
             spec: {}
 
-          # 워크스페이스(/harness) 밖의 경로는 스텝 간에 유지되지 않는다.
-          # pip 캐시를 공유해 매 스텝 재설치를 피한다.
+          # 워크스페이스(/harness) 밖 경로는 스텝 간에 유지되지 않는다.
           sharedPaths:
             - /root/.cache/pip
 
@@ -68,7 +68,7 @@ pipeline:
                         paths:
                           - report.xml
 
-              # flaky 스위트. 결과는 리포트에 남기되 빌드 판정에서는 제외한다.
+              # flaky 스위트. 리포트에는 남기되 빌드 판정에서는 제외한다.
               - step:
                   type: Run
                   name: Flaky tests
@@ -89,7 +89,7 @@ pipeline:
                         action:
                           type: Ignore
 
-              # 앱이 실제로 뜨는지 확인한다. Background 스텝은 stage가 끝날 때까지 살아 있다.
+              # stage 가 끝날 때까지 살아 있는 서비스.
               - step:
                   type: Background
                   name: Run API
@@ -113,15 +113,17 @@ pipeline:
                       done
                       curl -sf http://127.0.0.1:8000/health | grep '"status":"ok"'
 
+              # 이미지 빌드만 하고 푸시하지 않는다. 레지스트리 커넥터가 필요 없다.
               - step:
                   type: BuildAndPushDockerRegistry
-                  name: Build and push image
-                  identifier: build_push
+                  name: Build image
+                  identifier: build_image
                   spec:
-                    connectorRef: YOUR_DOCKER_CONNECTOR_ID
-                    repo: YOUR_DOCKER_REPO
+                    connectorRef: <+input>
+                    repo: harness-test
                     tags:
                       - <+pipeline.sequenceId>
-                      - latest
                     dockerfile: Dockerfile
                     context: .
+                    caching: true
+                    buildOnly: true
