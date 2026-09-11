@@ -39,8 +39,11 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
-                      python -m pip install --upgrade pip
-                      pip install -r requirements-dev.txt
+                      # 로컬 러너는 맥 호스트에서 직접 돈다. 시스템 파이썬을
+                      # 건드리지 않도록 워크스페이스에 venv 를 만든다.
+                      python3 -m venv .venv
+                      .venv/bin/pip install --upgrade pip
+                      .venv/bin/pip install -r requirements-dev.txt
 
               - step:
                   type: Run
@@ -48,7 +51,7 @@ pipeline:
                   identifier: lint
                   spec:
                     shell: Sh
-                    command: ruff check .
+                    command: .venv/bin/ruff check .
 
               # 정상 스위트. 실패하면 파이프라인을 세운다.
               - step:
@@ -58,7 +61,7 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
-                      pytest tests --ignore=tests/flaky -q \
+                      .venv/bin/pytest tests --ignore=tests/flaky -q \
                         --junitxml=report.xml \
                         --cov=app --cov-report=xml
                     reports:
@@ -95,7 +98,7 @@ pipeline:
                   identifier: run_api
                   spec:
                     shell: Sh
-                    command: uvicorn app.main:app --host 127.0.0.1 --port 8000
+                    command: .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
                     portBindings:
                       "8000": "8000"
 
