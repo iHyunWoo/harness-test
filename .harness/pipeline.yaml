@@ -11,8 +11,12 @@ pipeline:
         # Harness Code Repository 를 쓰면 connectorRef 가 필요 없다.
         # 외부 GitHub 을 쓰면 connectorRef: <커넥터 ID> 를 추가한다.
         repoName: collabops-web-harness
-        # 트리거가 Input Set 을 통해 브랜치를 채운다.
-        build: <+input>
+        # 런타임 입력을 두지 않는다. 실행할 때 물어보지 않고,
+        # 트리거 쪽에서 Input Set 을 요구하지도 않는다.
+        build:
+          type: branch
+          spec:
+            branch: main
 
   stages:
     - stage:
