@@ -24,6 +24,7 @@ docker run -d --name "$NAME" --restart unless-stopped \
   -e ACCOUNT_ID="$HARNESS_ACCOUNT_ID" \
   -e DELEGATE_TOKEN="$HARNESS_DELEGATE_TOKEN" \
   -e DELEGATE_TAGS="$TAGS" \
+  -e RUNNER_URL="${HARNESS_RUNNER_URL:-http://host.docker.internal:3000}" \
   -e MANAGER_HOST_AND_PORT="${HARNESS_MANAGER_ENDPOINT:-https://app.harness.io}" \
   "$HARNESS_DELEGATE_IMAGE"
 
