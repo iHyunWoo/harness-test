@@ -12,3 +12,6 @@ build/
 *.egg-info/
 report*.xml
 .env
+
+# Harness delegate 자격증명
+.harness-delegate.env
