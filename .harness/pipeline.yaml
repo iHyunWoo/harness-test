@@ -11,12 +11,8 @@ pipeline:
         # Harness Code Repository 를 쓰면 connectorRef 가 필요 없다.
         # 외부 GitHub 을 쓰면 connectorRef: <커넥터 ID> 를 추가한다.
         repoName: collabops-web-harness
-        # 런타임 입력을 두지 않는다. 실행할 때 물어보지 않고,
-        # 트리거 쪽에서 Input Set 을 요구하지도 않는다.
-        build:
-          type: branch
-          spec:
-            branch: main
+        # 트리거가 Input Set(trigger_branch)으로 이 값을 채운다.
+        build: <+input>
 
   stages:
     - stage:
@@ -155,21 +151,16 @@ pipeline:
                         level: info
                       fail_on_severity: none
 
-              # BuildAndPushDockerRegistry 는 레지스트리 커넥터를 요구한다.
-              # 로컬 러너는 호스트 Docker 를 그대로 쓸 수 있으므로 Run 으로 빌드만 한다.
               - step:
-                  type: Run
-                  name: Build image
+                  type: BuildAndPushDockerRegistry
+                  name: Build and push image
                   identifier: build_image
                   spec:
-                    shell: Sh
-                    command: |-
-                      if ! command -v docker >/dev/null 2>&1; then
-                        for d in /usr/local/bin /opt/homebrew/bin; do
-                          [ -x "$d/docker" ] && PATH="$d:$PATH" && export PATH && break
-                        done
-                      fi
-                      command -v docker >/dev/null 2>&1 || {
-                        echo "docker 를 찾을 수 없습니다."; exit 1; }
-                      docker build -t harness-test:<+pipeline.sequenceId> .
-                      docker image ls harness-test --format '{{.Repository}}:{{.Tag}} {{.Size}}'
+                    connectorRef: test
+                    repo: ihyunwoo/harness-test
+                    tags:
+                      - <+pipeline.sequenceId>
+                      - latest
+                    dockerfile: Dockerfile
+                    context: .
+                    caching: true
