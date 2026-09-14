@@ -157,7 +157,7 @@ pipeline:
                   identifier: build_image
                   spec:
                     connectorRef: test
-                    repo: ihyunwoo/harness-test
+                    repo: ghcr.io/ihyunwoo/harness-test
                     tags:
                       - <+pipeline.sequenceId>
                       - latest
