@@ -120,6 +120,41 @@ pipeline:
                       curl -sf http://127.0.0.1:8000/health | grep '"status":"ok"'
 
               # 이미지 빌드만 하고 푸시하지 않는다. 레지스트리 커넥터가 필요 없다.
+              # STO 스캐너. 결과가 실행 상세의 Vulnerabilities 탭에 쌓인다.
+              # fail_on_severity: none 이면 취약점을 찾아도 빌드를 세우지 않는다.
+              - step:
+                  type: Bandit
+                  name: Bandit scan
+                  identifier: bandit_scan
+                  spec:
+                    mode: orchestration
+                    config: default
+                    target:
+                      name: harness-test
+                      type: repository
+                      variant: main
+                    advanced:
+                      log:
+                        level: info
+                      fail_on_severity: none
+
+              # 의존성 CVE 탐지. starlette 쪽에 알려진 건이 여러 개 있다.
+              - step:
+                  type: Grype
+                  name: Grype scan
+                  identifier: grype_scan
+                  spec:
+                    mode: orchestration
+                    config: default
+                    target:
+                      name: harness-test
+                      type: repository
+                      variant: main
+                    advanced:
+                      log:
+                        level: info
+                      fail_on_severity: none
+
               # BuildAndPushDockerRegistry 는 레지스트리 커넥터를 요구한다.
               # 로컬 러너는 호스트 Docker 를 그대로 쓸 수 있으므로 Run 으로 빌드만 한다.
               - step:
