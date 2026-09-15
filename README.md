@@ -89,6 +89,29 @@ git push origin main                    # GitHub
 
 자격증명은 `.harness-code.env` (gitignore) 에서 읽는다.
 
+## 로컬 클러스터
+
+Resilience Testing(chaos / load / DR)은 대상이 클러스터에 떠 있어야 한다.
+
+```bash
+./scripts/setup-cluster.sh
+```
+
+kind 클러스터를 만들고, 이미지를 빌드해 로드하고, `k8s/` 를 적용한다.
+레지스트리가 필요 없도록 `kind load docker-image` 로 밀어넣는다.
+
+```
+k8s/deployment.yaml   Deployment(2 replicas) + Service
+loadtest/k6-smoke.js  k6 부하 테스트
+```
+
+부하 테스트를 로컬에서 돌리려면:
+
+```bash
+kubectl port-forward svc/harness-test 8090:80 &
+k6 run -e BASE_URL=http://localhost:8090 loadtest/k6-smoke.js
+```
+
 ## flaky 스위트
 
 Harness의 flaky 탐지를 확인하려고 일부러 넣었다.

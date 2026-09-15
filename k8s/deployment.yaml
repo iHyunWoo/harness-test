@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: harness-test
+  labels:
+    app: harness-test
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: harness-test
+  template:
+    metadata:
+      labels:
+        app: harness-test
+    spec:
+      containers:
+        - name: api
+          image: harness-test:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              memory: 192Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: harness-test
+  labels:
+    app: harness-test
+spec:
+  selector:
+    app: harness-test
+  ports:
+    - port: 80
+      targetPort: 8000
