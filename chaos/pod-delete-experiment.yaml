@@ -1,0 +1,51 @@
+apiVersion: litmuschaos.io/v1beta1
+kind: ChaosExperiment
+metadata:
+  name: harness-test-pod-delete
+  namespace: default
+spec:
+  infraType: KubernetesV2
+  infraId: myinfra
+  experimentId: 239e2ee9-4c3c-4a73-8391-9d23ef2d8e4c
+  cleanupPolicy: delete
+
+  # 실행 순서: start(사전 점검) -> pod-delete -> end(사후 점검)
+  vertices:
+    - name: v-fp5
+      start:
+        probes:
+          - name: pod-warnings-check-o3e-fo1
+
+    - name: v-pod-delete
+      fault:
+        name: pod-delete-1
+
+    - name: v-end
+      end:
+        probes:
+          - name: pod-warnings-check-o3e-fo1
+
+  probeRef:
+    - identity: pod-warnings-check-o3e
+      name: pod-warnings-check-o3e-fo1
+      weightage: 10
+      duration: 30s
+      infraId: myinfra
+      serviceId: harness-test-default-myinfra
+
+  actionRef: []
+
+  faultRef:
+    - identity: pod-delete
+      name: pod-delete-1
+      infraId: myinfra
+      serviceId: harness-test-default-myinfra
+      weightage: 10
+      duration: 30s
+      tunables:
+        # replica 2개 중 50% = 1개를 죽인다. 나머지 하나로 서비스가 유지돼야 한다.
+        TOTAL_CHAOS_DURATION: "30"
+        CHAOS_INTERVAL: "10"
+        PODS_AFFECTED_PERC: "50"
+        FORCE: "false"
+        RAMP_TIME: "0"

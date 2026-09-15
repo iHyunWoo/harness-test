@@ -16,3 +16,4 @@ report*.xml
 # Harness delegate 자격증명
 .harness-delegate.env
 .harness-code.env
+.harness-api.env
