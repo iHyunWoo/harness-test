@@ -61,7 +61,7 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
-                      .venv/bin/pytest tests --ignore=tests/flaky -q \
+                      .venv/bin/pytest tests --ignore=tests/flaky --ignore=tests/failing -q \
                         --junitxml=report.xml \
                         --cov=app --cov-report=xml
                     reports:
@@ -116,6 +116,26 @@ pipeline:
                       curl -sf http://127.0.0.1:8000/health | grep '"status":"ok"'
 
               # 이미지 빌드만 하고 푸시하지 않는다. 레지스트리 커넥터가 필요 없다.
+              # 항상 실패하는 테스트. 리포트에 트레이스백이 어떻게 보이는지 확인용.
+              - step:
+                  type: Run
+                  name: Failing tests
+                  identifier: failing_tests
+                  spec:
+                    shell: Sh
+                    command: .venv/bin/pytest tests/failing -q --junitxml=report-failing.xml || true
+                    reports:
+                      type: JUnit
+                      spec:
+                        paths:
+                          - report-failing.xml
+                  failureStrategies:
+                    - onFailure:
+                        errors:
+                          - AllErrors
+                        action:
+                          type: Ignore
+
               # STO 스캐너. 결과가 실행 상세의 Vulnerabilities 탭에 쌓인다.
               # fail_on_severity: none 이면 취약점을 찾아도 빌드를 세우지 않는다.
               - step:
